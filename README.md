@@ -29,7 +29,7 @@ This is a program I wrote in C++ that does a few things. Here are the things:
 - Write the images to a folder
 - Optionally open the images
 
-It only does Windows so far.
+It only does Windows so far. (I think?)
 
 ## How do I use it?
 
