@@ -429,6 +429,10 @@ int main(int argc, char* argv[]) {
 				strcat(command, new_filename);
 				system(command);
 			}
+			char folder_command[strlen(foldername) + 10];
+			strcpy(folder_command, "start ");
+			strcat(folder_command, foldername);
+			system(folder_command);
 #endif
 		}
 	} else {
