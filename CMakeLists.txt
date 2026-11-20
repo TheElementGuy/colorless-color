@@ -3,4 +3,4 @@ project(colorless_color)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(colorless_color main.cpp)
+add_executable(colorless_color main.cpp SimpleFileDialog.cpp)

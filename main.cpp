@@ -2,14 +2,16 @@
 #include <functional>
 #include <cstdlib>
 #include <direct.h>
+#include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "stb_image.h"
 #include "stb_image_write.h"
+#include "SimpleFileDialog.h"
 
-#define MAX_FILENAME_SIZE 50
+#define MAX_FILENAME_SIZE 200
 
 #define R_BRIGHTNESS_COEF 0.2126
 #define G_BRIGHTNESS_COEF 0.7152
@@ -335,16 +337,34 @@ named_img_transform compose(named_img_transform first, named_img_transform secon
 }*/
 //sucks
 
+void parse_filename(char* filename, char* clean) {
+	char next_filename[MAX_FILENAME_SIZE];
+	char* final = strrchr(filename, '\\') + 1;
+	if (!final) {
+		return;
+	}
+	int i = 0;
+	while (*final) {
+		next_filename[i] = *final;
+		i++;
+		final++;
+	}
+	next_filename[i] = '\0';
+	strcpy(clean, next_filename);
+}
+
 int main(int argc, char* argv[]) {
 
 	char filename[MAX_FILENAME_SIZE];
 
 	if (argc < 2) {
 		cout << "Enter file name:" << endl;
-		cin >> filename;
+		strcpy(filename, rapidpixel::SimpleFileDialog::dialog().c_str());
 	} else {
 		strcpy(filename, argv[1]);
 	}
+
+	cout << "Filename: " << filename << endl;
 
 	bool open = false;
 
@@ -357,6 +377,9 @@ int main(int argc, char* argv[]) {
 	char foldername[MAX_FILENAME_SIZE];
 	strncpy(foldername, filename, strlen(filename) - 4);
 	foldername[strlen(filename) - 4] = '\0';
+
+	char parsed_filename[MAX_FILENAME_SIZE];
+	parse_filename(filename, parsed_filename);
 
 	_mkdir(foldername);
 
@@ -391,10 +414,10 @@ int main(int argc, char* argv[]) {
 			to_convert.transform(transforms[i].func);
 			char new_filename[MAX_FILENAME_SIZE + 10];
 			strcpy(new_filename, foldername);
-			strcat(new_filename, "/");
+			strcat(new_filename, "\\");
 			strcat(new_filename, transforms[i].name);
 			strcat(new_filename, "_");
-			strcat(new_filename, filename);
+			strcat(new_filename, parsed_filename);
 			cout << "Writing..." << endl;
 			if (to_convert.write(new_filename) != 1) {
 				cerr << "Error writing image." << endl;
