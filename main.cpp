@@ -9,6 +9,8 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 
+#define MAX_FILENAME_SIZE 50
+
 #define R_BRIGHTNESS_COEF 0.2126
 #define G_BRIGHTNESS_COEF 0.7152
 #define B_BRIGHTNESS_COEF 0.0722
@@ -45,6 +47,23 @@ struct rgba {
 		return brightness() > obj.brightness();
 	}
 };
+
+struct named_color {
+	rgba color;
+	char name[80] = "";
+	named_color(rgba set_color, const char* name_string) {
+		strcpy(name, name_string);
+		color = set_color;
+	}
+};
+
+named_color RED = named_color(rgba(255, 0, 0), "red");
+named_color GREEN = named_color(rgba(0, 255, 0), "green");
+named_color BLUE = named_color(rgba(0, 0, 255), "blue");
+
+named_color YELLOW = named_color(rgba(255, 255, 0), "yellow");
+named_color CYAN = named_color(rgba(0, 255, 255), "cyan");
+named_color MAGENTA = named_color(rgba(255, 0, 255), "magenta");
 
 int compare_rgba(const void* first, const void* second) {
 	//ooooh, compiler mad!
@@ -115,6 +134,15 @@ public:
 	void combine(const img& other) const;
 };
 
+struct named_img_transform {
+	function<rgba(rgba)> func;
+	char name[80] = "";
+	named_img_transform(function<rgba(rgba)> def_func, char* transform_name) {
+		func = def_func;
+		strcpy(name, transform_name);
+	}
+};
+
 ostream& operator<<(ostream &stream, rgba obj);
 
 ostream& operator<<(ostream &stream, const rgba obj) {
@@ -129,47 +157,65 @@ rgba grayscale(const rgba to_gs) {
 rgba reddify_green(const rgba to_rf) {
 	int base = to_rf.r;
 	int channel = to_rf.g;
-	int channel_scaled = channel * G_BRIGHTNESS_COEF;
+	int channel_scaled = channel;
 	return rgba((base + channel_scaled) / 2, channel_scaled/2, channel_scaled/2);
 }
 
 rgba reddify_blue(const rgba to_rf) {
 	int base = to_rf.r;
 	int channel = to_rf.b;
-	int channel_scaled = channel * B_BRIGHTNESS_COEF;
+	int channel_scaled = channel;
 	return rgba((base + channel_scaled) / 2, channel_scaled/2, channel_scaled/2);
 }
 
 rgba greenify_red(const rgba to_gf) {
 	int base = to_gf.g;
 	int channel = to_gf.r;
-	int channel_scaled = channel * R_BRIGHTNESS_COEF;
+	int channel_scaled = channel;
 	return rgba(channel_scaled/2, (base + channel_scaled) / 2, channel_scaled/2);
 }
 
 rgba greenify_blue(const rgba to_gf) {
 	int base = to_gf.g;
 	int channel = to_gf.b;
-	int channel_scaled = channel * B_BRIGHTNESS_COEF;
+	int channel_scaled = channel;
 	return rgba(channel_scaled/2, (base + channel_scaled) / 2, channel_scaled/2);
 }
 
 rgba blueify_red(const rgba to_bf) {
 	int base = to_bf.b;
 	int channel = to_bf.r;
-	int channel_scaled = channel * R_BRIGHTNESS_COEF;
+	int channel_scaled = channel;
 	return rgba(channel_scaled/2, channel_scaled/2, (base + channel_scaled) / 2);
 }
 
 rgba blueify_green(const rgba to_bf) {
 	int base = to_bf.b;
 	int channel = to_bf.g;
-	int channel_scaled = channel * G_BRIGHTNESS_COEF;
+	int channel_scaled = channel;
 	return rgba(channel_scaled/2, channel_scaled/2, (base + channel_scaled) / 2);
 }
 
-rgba blueify(const rgba to_bf) {
-	return rgba(0, 0, to_bf.b);
+rgba through_filter_p(const rgba filtered, const rgba filter, double transmittance = 0.5) {
+	double r = filtered.r / 255.0 * (transmittance + (1 - transmittance) * (filter.r / 255.0));
+	double g = filtered.g / 255.0 * (transmittance + (1 - transmittance) * (filter.g / 255.0));
+	double b = filtered.b / 255.0 * (transmittance + (1 - transmittance) * (filter.b / 255.0));
+	return {(int) (r * 255), (int) (g * 255), (int) (b * 255)};
+}
+
+rgba through_filter_l(const rgba filtered, const rgba filter, double transmittance = 0.5) {
+	double r = filtered.r / 255.0 * transmittance + (1 - transmittance) * (filter.r / 255.0);
+	double g = filtered.g / 255.0 * transmittance + (1 - transmittance) * (filter.g / 255.0);
+	double b = filtered.b / 255.0 * transmittance + (1 - transmittance) * (filter.b / 255.0);
+	return {(int) (r * 255), (int) (g * 255), (int) (b * 255)};
+}
+
+function<rgba(rgba)> create_transparent(rgba filter, double transmittance = 0.5) {
+	return [filter, transmittance](rgba in) -> rgba {return through_filter_p(in, filter, transmittance);};
+}
+
+function<rgba(rgba)> create_translucent(rgba filter, double transmittance = 0.5) {
+	return [filter, transmittance](rgba in) -> rgba {return through_filter_l(in, filter, transmittance);};
 }
 
 void img::transform(function<rgba(rgba)> funct) {
@@ -192,6 +238,57 @@ void img::combine(const img& other) const {
 		data[i] = rgba_combine(data[i], other_data[i]);
 	}
 
+}
+
+rgba color_based_grayscale(rgba in, rgba filter) {
+	int intensity = (in.r * filter.r + in.g * filter.g + in.b * filter.b) * 255 / (filter.r * filter.r + filter.g * filter.g + filter.b * filter.b);
+	return {intensity, intensity, intensity};
+}
+
+function<rgba(rgba)> of_lands(rgba filter1, rgba filter2) {
+	return [filter1, filter2](rgba in) -> rgba {
+		rgba filtered1 = through_filter_p(in, filter1, 0);
+		//rgba filtered2 = through_filter_p(in, filter2, 0);
+		rgba gray = color_based_grayscale(in, filter2);
+		return {rgba_combine(filtered1, gray)};
+	};
+}
+
+function<rgba(rgba)> adjusted_lands(rgba filter1, rgba filter2) {
+	return [filter1, filter2](rgba in) -> rgba {
+		double intensity = (double) (in.r * filter1.r + in.g * filter1.g + in.b * filter1.b) / (filter1.r * filter1.r + filter1.g * filter1.g + filter1.b * filter1.b);
+		rgba other = color_based_grayscale(in, filter2);
+		rgba filter1gray = rgba(intensity * filter1.r, intensity * filter1.g, intensity * filter1.b);
+		return {rgba_combine(filter1gray, other)};
+	};
+}
+
+named_img_transform nit_of_lands(named_color filter1, named_color filter2) {
+	char name_to_return[80] = "lands_";
+	strcat(name_to_return, filter1.name);
+	strcat(name_to_return, "ify-with");
+	strcat(name_to_return, filter2.name);
+	return named_img_transform(of_lands(filter1.color, filter2.color), name_to_return);
+}
+
+named_img_transform nit_of_adjusted_lands(named_color filter1, named_color filter2) {
+	char name_to_return[80] = "lands_";
+	strcat(name_to_return, filter1.name);
+	strcat(name_to_return, "ify-adjusted-with");
+	strcat(name_to_return, filter2.name);
+	return named_img_transform(adjusted_lands(filter1.color, filter2.color), name_to_return);
+}
+
+named_img_transform nit_of_translucent(named_color filter) {
+	char name_to_return[80] = "filter_l_";
+	strcat(name_to_return, filter.name);
+	return named_img_transform(create_translucent(filter.color), name_to_return);
+}
+
+named_img_transform nit_of_transparent(named_color filter) {
+	char name_to_return[80] = "filter_p_";
+	strcat(name_to_return, filter.name);
+	return named_img_transform(create_transparent(filter.color), name_to_return);
 }
 
 void to_raw_dat(rgba* data, int num_pix, unsigned char* write_into) {
@@ -220,14 +317,31 @@ int img::write(const char* filename) const {
 	return to_return;
 }
 
+named_img_transform compose(named_img_transform first, named_img_transform second) {
+	char name[100];
+	strcpy(name, first.name);
+	strcat(name, "_then_");
+	strcat(name, second.name);
+	return named_img_transform([first, second](rgba in) -> rgba {
+		return second.func(first.func(in));
+	}, name);
+}
+
+/*named_img_transform enhanced_lands_adjusted(named_color filter1, named_color filter2) {
+	return compose(nit_of_adjusted_lands(filter1, filter2), nit_of_translucent(filter1));
+}*/
+//sucks
+
 int main(int argc, char* argv[]) {
 
-	if (argc < 2) {
-		cerr << "No file specified. Quitting!" << endl;
-		return -1;
-	}
+	char filename[MAX_FILENAME_SIZE];
 
-	const char* filename = argv[1];
+	if (argc < 2) {
+		cout << "Enter file name:" << endl;
+		cin >> filename;
+	} else {
+		strcpy(filename, argv[1]);
+	}
 
 	int width, height, num_channels;
 	//put image in cmake-build-debug folder
@@ -238,16 +352,14 @@ int main(int argc, char* argv[]) {
 		cout << "Width: " << width << " Height: " << height << " Channels: " << num_channels << endl;
 		const img working = img(data, &width, &height);
 
-		rgba (*funcs[])(rgba to_rf) = {reddify_green, reddify_blue, greenify_red, greenify_blue, blueify_red, blueify_green};
+		named_img_transform transforms[] = {enhanced_lands_adjusted(RED, GREEN)};
 
-		const char* prefixes[] = {"redwithg", "redwithb", "greenwithr", "greenwithb", "bluewithr", "bluewithg"};
-
-		for (int i = 0; i < 6; i++) {
-			cout << "Running: " << prefixes[i] << endl;
+		for (int i = 0; i < sizeof(transforms) / sizeof(named_img_transform); i++) {
+			cout << "Running: " << transforms[i].name << endl;
 			img to_convert(working);
-			to_convert.transform(funcs[i]);
-			char new_filename[20];
-			strcpy(new_filename, prefixes[i]);
+			to_convert.transform(transforms[i].func);
+			char new_filename[MAX_FILENAME_SIZE + 10];
+			strcpy(new_filename, transforms[i].name);
 			strcat(new_filename, "_");
 			strcat(new_filename, filename);
 			cout << "Writing..." << endl;
@@ -255,7 +367,8 @@ int main(int argc, char* argv[]) {
 				cerr << "Error writing image." << endl;
 			}
 #ifdef WIN32
-			char command[26] = "start ";
+			char command[strlen(new_filename) + 10];
+			strcpy(command, "start ");
 			strcat(command, new_filename);
 			system(command);
 #endif
