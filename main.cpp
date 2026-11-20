@@ -4,6 +4,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include <functional>
+#include <cstdlib>
 
 #include "stb_image.h"
 #include "stb_image_write.h"
@@ -219,8 +220,14 @@ int img::write(const char* filename) const {
 	return to_return;
 }
 
-int main() {
-	const char* filename = "DSC00209.jpg";
+int main(int argc, char* argv[]) {
+
+	if (argc < 2) {
+		cerr << "No file specified. Quitting!" << endl;
+		return -1;
+	}
+
+	const char* filename = argv[1];
 
 	int width, height, num_channels;
 	//put image in cmake-build-debug folder
@@ -233,20 +240,29 @@ int main() {
 
 		rgba (*funcs[])(rgba to_rf) = {reddify_green, reddify_blue, greenify_red, greenify_blue, blueify_red, blueify_green};
 
-		const char* prefixes[] = {"redwithg_", "redwithb_", "greenwithr_", "greenwithb_", "bluewithr_", "bluewithg_"};
+		const char* prefixes[] = {"redwithg", "redwithb", "greenwithr", "greenwithb", "bluewithr", "bluewithg"};
 
 		for (int i = 0; i < 6; i++) {
+			cout << "Running: " << prefixes[i] << endl;
 			img to_convert(working);
 			to_convert.transform(funcs[i]);
 			char new_filename[20];
 			strcpy(new_filename, prefixes[i]);
+			strcat(new_filename, "_");
 			strcat(new_filename, filename);
+			cout << "Writing..." << endl;
 			if (to_convert.write(new_filename) != 1) {
 				cerr << "Error writing image." << endl;
 			}
+#ifdef WIN32
+			char command[26] = "start ";
+			strcat(command, new_filename);
+			system(command);
+#endif
 		}
 	} else {
 		cerr << "Gosh diddly darn it, the file didn't load." << endl;
+		return -2;
 	}
 
 	stbi_image_free(data);
