@@ -1,10 +1,10 @@
 #include <iostream>
+#include <functional>
+#include <cstdlib>
+#include <direct.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-
-#include <functional>
-#include <cstdlib>
 
 #include "stb_image.h"
 #include "stb_image_write.h"
@@ -14,6 +14,8 @@
 #define R_BRIGHTNESS_COEF 0.2126
 #define G_BRIGHTNESS_COEF 0.7152
 #define B_BRIGHTNESS_COEF 0.0722
+
+#define NUM_COLORS 6
 
 using namespace std;
 
@@ -141,6 +143,7 @@ struct named_img_transform {
 		func = def_func;
 		strcpy(name, transform_name);
 	}
+	named_img_transform() = default;
 };
 
 ostream& operator<<(ostream &stream, rgba obj);
@@ -343,6 +346,20 @@ int main(int argc, char* argv[]) {
 		strcpy(filename, argv[1]);
 	}
 
+	bool open = false;
+
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-o") == 0) {
+			open = true;
+		}
+	}
+
+	char foldername[MAX_FILENAME_SIZE];
+	strncpy(foldername, filename, strlen(filename) - 4);
+	foldername[strlen(filename) - 4] = '\0';
+
+	_mkdir(foldername);
+
 	int width, height, num_channels;
 	//put image in cmake-build-debug folder
 	unsigned char* data = stbi_load(filename, &width, &height, &num_channels, 4);
@@ -352,14 +369,30 @@ int main(int argc, char* argv[]) {
 		cout << "Width: " << width << " Height: " << height << " Channels: " << num_channels << endl;
 		const img working = img(data, &width, &height);
 
-		named_img_transform transforms[] = {nit_of_adjusted_lands(RED, GREEN)};
+		named_color all_colors[NUM_COLORS] = {RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA};
+
+		named_img_transform transforms[NUM_COLORS * 6] = {};
+
+		int index = 0;
+		for (int i = 0; i < NUM_COLORS; i++) {
+			for (int j = 0; j < NUM_COLORS; j++) {
+				if (i == j) {
+					transforms[index] = nit_of_translucent(all_colors[i]);
+				} else {
+					transforms[index] = nit_of_adjusted_lands(all_colors[i], all_colors[j]);
+				}
+				index++;
+			}
+		}
 
 		for (int i = 0; i < sizeof(transforms) / sizeof(named_img_transform); i++) {
 			cout << "Running: " << transforms[i].name << endl;
 			img to_convert(working);
 			to_convert.transform(transforms[i].func);
 			char new_filename[MAX_FILENAME_SIZE + 10];
-			strcpy(new_filename, transforms[i].name);
+			strcpy(new_filename, foldername);
+			strcat(new_filename, "/");
+			strcat(new_filename, transforms[i].name);
 			strcat(new_filename, "_");
 			strcat(new_filename, filename);
 			cout << "Writing..." << endl;
@@ -367,10 +400,12 @@ int main(int argc, char* argv[]) {
 				cerr << "Error writing image." << endl;
 			}
 #ifdef WIN32
-			char command[strlen(new_filename) + 10];
-			strcpy(command, "start ");
-			strcat(command, new_filename);
-			system(command);
+			if (open) {
+				char command[strlen(new_filename) + 10];
+				strcpy(command, "start ");
+				strcat(command, new_filename);
+				system(command);
+			}
 #endif
 		}
 	} else {
