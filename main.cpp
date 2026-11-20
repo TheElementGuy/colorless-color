@@ -352,7 +352,7 @@ int main(int argc, char* argv[]) {
 		cout << "Width: " << width << " Height: " << height << " Channels: " << num_channels << endl;
 		const img working = img(data, &width, &height);
 
-		named_img_transform transforms[] = {enhanced_lands_adjusted(RED, GREEN)};
+		named_img_transform transforms[] = {nit_of_adjusted_lands(RED, GREEN)};
 
 		for (int i = 0; i < sizeof(transforms) / sizeof(named_img_transform); i++) {
 			cout << "Running: " << transforms[i].name << endl;
