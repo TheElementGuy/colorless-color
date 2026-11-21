@@ -11,13 +11,13 @@
 #include "stb_image_write.h"
 #include "SimpleFileDialog.h"
 
-#define MAX_FILENAME_SIZE 200
+#define MAX_FILENAME_SIZE 5000
 
 #define R_BRIGHTNESS_COEF 0.2126
 #define G_BRIGHTNESS_COEF 0.7152
 #define B_BRIGHTNESS_COEF 0.0722
 
-#define NUM_COLORS 6
+#define NUM_COLORS 8
 
 using namespace std;
 
@@ -69,6 +69,9 @@ named_color YELLOW = named_color(rgba(255, 255, 0), "yellow");
 named_color CYAN = named_color(rgba(0, 255, 255), "cyan");
 named_color MAGENTA = named_color(rgba(255, 0, 255), "magenta");
 
+named_color ORANGE = named_color(rgba(255, 165, 0), "orange");
+named_color PURPLE = named_color(rgba(128, 0, 128), "purple");
+
 int compare_rgba(const void* first, const void* second) {
 	//ooooh, compiler mad!
 	const rgba arg1 = *((rgba*) first);
@@ -92,7 +95,7 @@ protected:
 	int height;
 public:
 	img(const unsigned char* raw_dat, const int* width, const int* height) {
-		cout << "Constructing image." << endl;
+		//cout << "Constructing image." << endl;
 		data = new rgba[*width * *height];
 		pixel_num = *width * *height;
 		from_raw_dat(raw_dat, pixel_num, data);
@@ -100,11 +103,11 @@ public:
 		this->height = *height;
 	}
 	virtual ~img() {
-		cout << "Destructing image." << endl;
+		//cout << "Destructing image." << endl;
 		delete[] data;
 	}
 	img(const img& other) {
-		cout << "Copy constructing image." << endl;
+		//cout << "Copy constructing image." << endl;
 		pixel_num = other.pixel_num;
 		width = other.width;
 		height = other.height;
@@ -114,7 +117,7 @@ public:
 		}
 	}
 	img& operator=(const img& other) {
-		cout << "Copy constructing image." << endl;
+		//cout << "Copy assigning image." << endl;
 
 		if (this == &other) {
 			return *this;
@@ -261,8 +264,9 @@ function<rgba(rgba)> of_lands(rgba filter1, rgba filter2) {
 
 function<rgba(rgba)> adjusted_lands(rgba filter1, rgba filter2) {
 	return [filter1, filter2](rgba in) -> rgba {
-		double intensity = (double) (in.r * filter1.r + in.g * filter1.g + in.b * filter1.b) / (filter1.r * filter1.r + filter1.g * filter1.g + filter1.b * filter1.b);
-		rgba other = color_based_grayscale(in, filter2);
+		rgba filter1in = through_filter_p(in, filter1, 0);
+		double intensity = (double) (filter1in.r * filter1.r + filter1in.g * filter1.g + filter1in.b * filter1.b) / (filter1.r * filter1.r + filter1.g * filter1.g + filter1.b * filter1.b);
+		rgba other = color_based_grayscale(through_filter_p(in, filter2, 0), filter2);
 		rgba filter1gray = rgba(intensity * filter1.r, intensity * filter1.g, intensity * filter1.b);
 		return {rgba_combine(filter1gray, other)};
 	};
@@ -360,6 +364,10 @@ int main(int argc, char* argv[]) {
 	if (argc < 2) {
 		cout << "Enter file name:" << endl;
 		strcpy(filename, rapidpixel::SimpleFileDialog::dialog().c_str());
+		if (strlen(filename) == 0) {
+			cerr << "No file entered.";
+			return -3;
+		}
 	} else {
 		strcpy(filename, argv[1]);
 	}
@@ -392,9 +400,9 @@ int main(int argc, char* argv[]) {
 		cout << "Width: " << width << " Height: " << height << " Channels: " << num_channels << endl;
 		const img working = img(data, &width, &height);
 
-		named_color all_colors[NUM_COLORS] = {RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA};
+		named_color all_colors[NUM_COLORS] = {RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA, ORANGE, PURPLE};
 
-		named_img_transform transforms[NUM_COLORS * 6] = {};
+		named_img_transform transforms[NUM_COLORS * NUM_COLORS] = {};
 
 		int index = 0;
 		for (int i = 0; i < NUM_COLORS; i++) {
