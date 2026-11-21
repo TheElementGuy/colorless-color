@@ -15,7 +15,9 @@ Ever heard of the Land effect? It's a relatively obscure optical illusion. First
 
 Instead of looking like a red filtered version of the image, you can kind of see color! There's a good demonstration [here](https://land.t-a-y-l-o-r.com/).
 
-![Land effect image of 4999 go Momentum](colorless-colorscropped.png)
+![Land effect image of 4999 go Momentum](colorless-colors.png)
+
+![Histogram compression image of 4999 go Momentum](colorless-colors2.png)
 
 Also, I learned of some experiments by Akiyoshi Kitaoka related to this effect. You can read about it [here](https://michaelbach.de/ot/col-strawbsNotRed/index.html). [Here](https://www.psy.ritsumei.ac.jp/akitaoka/ECVP2015.html) is some more of his research. He related equations describing color filtering to the Land effect.
 
