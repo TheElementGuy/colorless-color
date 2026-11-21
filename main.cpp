@@ -1,3 +1,4 @@
+#include <comcat.h>
 #include <iostream>
 #include <functional>
 #include <cstdlib>
@@ -53,6 +54,9 @@ struct rgba {
 	}
 	bool operator>(const rgba& obj) const {
 		return brightness() > obj.brightness();
+	}
+	[[nodiscard]] inline rgba complement() const {
+		return {255 - r, 255 - g, 255 - b};
 	}
 };
 
@@ -345,6 +349,47 @@ named_img_transform compose(named_img_transform first, named_img_transform secon
 }*/
 //sucks
 
+rgba histogram_compression(rgba color_in, int rmin, int rmax, int gmin, int gmax, int bmin, int bmax) {
+	return {rmin + ((rmax - rmin) * color_in.r) / 255, gmin + ((gmax - gmin) * color_in.g) / 255, bmin + ((bmax - bmin) * color_in.b) / 255};
+}
+
+named_img_transform nit_of_compression(named_color filter) {
+	char transform_name[MAX_FILENAME_SIZE] = "histcompress_";
+	strcat(transform_name, filter.name);
+	return named_img_transform([filter](rgba in) -> rgba {
+		rgba complement = filter.color.complement();
+		int r1 = filter.color.r;
+		int r2 = complement.r;
+		int g1 = filter.color.g;
+		int g2 = complement.g;
+		int b1 = filter.color.b;
+		int b2 = complement.b;
+		int rmin, rmax, gmin, gmax, bmin, bmax;
+		if (r1 > r2) {
+			rmin = r2 / 2 + 128;
+			rmax = r1 / 2 + 128;
+		} else {
+			rmin = r1 / 2;
+			rmax = r2 / 2;
+		}
+		if (g1 > g2) {
+			gmin = g2 / 2 + 128;
+			gmax = g1 / 2 + 128;
+		} else {
+			gmin = g1 / 2;
+			gmax = g2 / 2;
+		}
+		if (b1 > b2) {
+			bmin = b2 / 2 + 128;
+			bmax = b1 / 2 + 128;
+		} else {
+			bmin = b1 / 2;
+			bmax = b2 / 2;
+		}
+		return histogram_compression(in, rmin, rmax, gmin, gmax, bmin, bmax);
+	}, transform_name);
+}
+
 void parse_filename(char* filename, char* clean) {
 	char next_filename[MAX_FILENAME_SIZE];
 	char* final = strrchr(filename, '\\') + 1;
@@ -363,6 +408,8 @@ void parse_filename(char* filename, char* clean) {
 
 int main(int argc, char* argv[]) {
 
+	cout << adjusted_lands(ORANGE.color, CYAN.color)(rgba(255, 255, 255)) << endl;
+
 	char filename[MAX_FILENAME_SIZE];
 
 	if (argc < 2) {
@@ -375,8 +422,6 @@ int main(int argc, char* argv[]) {
 	} else {
 		strcpy(filename, argv[1]);
 	}
-
-	cout << "Filename: " << filename << endl;
 
 	bool open = false;
 
@@ -410,13 +455,17 @@ int main(int argc, char* argv[]) {
 
 		named_color all_colors[NUM_COLORS] = {RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA, ORANGE, PURPLE};
 
-		named_img_transform transforms[NUM_COLORS * NUM_COLORS] = {};
+		named_img_transform transforms[NUM_COLORS * (NUM_COLORS + 2)] = {};
 
 		int index = 0;
 		for (int i = 0; i < NUM_COLORS; i++) {
 			for (int j = 0; j < NUM_COLORS; j++) {
 				if (i == j) {
+					transforms[index] = nit_of_compression(all_colors[i]);
+					index++;
 					transforms[index] = nit_of_translucent(all_colors[i]);
+					index++;
+					transforms[index] = nit_of_transparent(all_colors[i]);
 				} else {
 					transforms[index] = nit_of_adjusted_lands(all_colors[i], all_colors[j]);
 				}
