@@ -1,8 +1,12 @@
 #include <iostream>
 #include <functional>
 #include <cstdlib>
+
+#ifdef _WIN32
 #include <direct.h>
-#include <string>
+#else
+#include <unistd.h>
+#endif
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -389,7 +393,11 @@ int main(int argc, char* argv[]) {
 	char parsed_filename[MAX_FILENAME_SIZE];
 	parse_filename(filename, parsed_filename);
 
+#ifdef _WIN32
 	_mkdir(foldername);
+#else
+	mkdir(foldername, 0755);
+#endif
 
 	int width, height, num_channels;
 	//put image in cmake-build-debug folder
@@ -430,18 +438,30 @@ int main(int argc, char* argv[]) {
 			if (to_convert.write(new_filename) != 1) {
 				cerr << "Error writing image." << endl;
 			}
-#ifdef WIN32
+#ifdef _WIN32
 			if (open) {
 				char command[strlen(new_filename) + 10];
 				strcpy(command, "start ");
 				strcat(command, new_filename);
 				system(command);
 			}
+#else
+			if (open) {
+				char command[strlen(new_filename) + 10];
+				strcpy(command, "xdg-open ");
+				strcat(command, new_filename);
+				system(command);
+			}
 #endif
 		}
-#ifdef WIN32
+#ifdef _WIN32
 		char folder_command[strlen(foldername) + 10];
 		strcpy(folder_command, "start ");
+		strcat(folder_command, foldername);
+		system(folder_command);
+#else
+		char folder_command[strlen(foldername) + 10];
+		strcpy(folder_command, "xdg-open ");
 		strcat(folder_command, foldername);
 		system(folder_command);
 #endif
