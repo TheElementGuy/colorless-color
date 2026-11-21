@@ -45,7 +45,7 @@ Download the C++ file. Compile the C++ file (look it up). Run the ```.x64```?
 
 Ohhh...
 
-Run it in the command line. Something like this: ```colorless_color [filename] [-o]```. The filename is the filename. Without it, a dialog box will open. The ```-o``` flag will cause the images to open as they are generated (there's 36 of them!).
+Run it in the command line. Something like this: ```colorless_color [filename] [-o]```. The filename is the filename. Without it, a dialog box will open. The ```-o``` flag will cause the images to open as they are generated (there's 64 of them!).
 
 By default, the images will be saved in a folder whose name matches the original image.
 
