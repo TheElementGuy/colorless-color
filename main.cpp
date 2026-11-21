@@ -408,8 +408,6 @@ void parse_filename(char* filename, char* clean) {
 
 int main(int argc, char* argv[]) {
 
-	cout << adjusted_lands(ORANGE.color, CYAN.color)(rgba(255, 255, 255)) << endl;
-
 	char filename[MAX_FILENAME_SIZE];
 
 	if (argc < 2) {
