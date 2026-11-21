@@ -17,15 +17,18 @@ Instead of looking like a red filtered version of the image, you can kind of see
 
 ![Land effect image of 4999 go Momentum](colorless-colorscropped.png)
 
-Also, I learned of some experiments by Akiyoshi Kitaoka related to this effect. You can read about it [here](https://michaelbach.de/ot/col-strawbsNotRed/index.html). [Here](https://www.psy.ritsumei.ac.jp/akitaoka/ECVP2015.html) is some more of his research. He related equations describing color filtering to the Land effect. So now...
+Also, I learned of some experiments by Akiyoshi Kitaoka related to this effect. You can read about it [here](https://michaelbach.de/ot/col-strawbsNotRed/index.html). [Here](https://www.psy.ritsumei.ac.jp/akitaoka/ECVP2015.html) is some more of his research. He related equations describing color filtering to the Land effect.
+
+This repository also supports histogram compression. Kitaoka uses it in his strawberry illusions. It creates a stronger effect, though it is kind of cheating because there are less bounds on the allowed colors. So now...
 
 ## What is this?
 
 This is a program I wrote in C++ that does a few things. Here are the things:
 
 - Accept an image from the user
-- Simulate the image being viewed through red, green, blue, yellow, cyan, and magenta filters
-- Simulate the Land effect with not just a red/green filter but every possible combination of the six previously mentioned colors
+- Simulate the image being viewed through red, green, blue, yellow, cyan, magenta, purple, and orange filters (transparent and translucent!)
+- Simulate the Land effect with not just a red/green filter but every possible combination of the eight previously mentioned colors
+- Simulate histogram compression with regards to all of the previously mentioned colors
 - Write the images to a folder
 - Optionally open the images
 
@@ -48,5 +51,7 @@ Ohhh...
 Run it in the command line. Something like this: ```colorless_color [filename] [-o]```. The filename is the filename. Without it, a dialog box will open. The ```-o``` flag will cause the images to open as they are generated (there's 64 of them!).
 
 By default, the images will be saved in a folder whose name matches the original image.
+
+Pro tip: you can also run Mathematica's `ChromaticityPlot` on the image to see that the colors really are illusory!
 
 **Note: orange is not working properly at the moment. Any help would be appreciated.**
