@@ -1,0 +1,40 @@
+aaaa ICON "@CMAKE_CURRENT_SOURCE_DIR@/auraful.ico"
+
+#define wxUSE_RC_MANIFEST 1
+
+#ifndef wxUSE_DPI_AWARE_MANIFEST
+#define wxUSE_DPI_AWARE_MANIFEST 2
+#endif
+
+#include <windows.h>
+
+#include "wx/msw/wx.rc"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,@APP_BUILD_NUMBER@
+PRODUCTVERSION  @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,@APP_BUILD_NUMBER@
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0x0L
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "Esceeesc Inc."
+            VALUE "FileDescription",  "Colorless Colors App"
+            VALUE "FileVersion",      "@PROJECT_VERSION@"
+            VALUE "InternalName",     "@PROJECT_NAME@.exe"
+            VALUE "LegalCopyright",   "Copyright (C) 2026"
+            VALUE "OriginalFilename", "@PROJECT_NAME@.exe"
+            VALUE "ProductName",      "Colorless Colors App"
+            VALUE "ProductVersion",   "@PROJECT_VERSION@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END
