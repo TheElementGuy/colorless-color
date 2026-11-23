@@ -7,7 +7,6 @@
 
 #include "stb_wrapper.h"
 
-#include <comcat.h>
 #include <thread>
 #include <cstdlib>
 
