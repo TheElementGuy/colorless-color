@@ -51,7 +51,7 @@ int get_new_dimension(int orig, int window, int other_orig, int other_window) {
 void redimension(wxImage* to_resize, colorless_colors_file_select_frame* frame) {
 	int resize_width = get_new_dimension(to_resize->GetWidth(), frame->GetClientSize().GetWidth(), to_resize->GetHeight(), frame->GetClientSize().GetHeight());
 	int resize_height = get_new_dimension(to_resize->GetHeight(), frame->GetClientSize().GetHeight(), to_resize->GetWidth(), frame->GetClientSize().GetWidth());
-	to_resize->Rescale(resize_width, resize_height, wxIMAGE_QUALITY_FAST);
+	to_resize->Rescale(resize_width, resize_height, wxIMAGE_QUALITY_NEAREST);
 }
 
 void run_transform(char* filename, colorless_colors_file_select_frame* frame, const bool open_images_flag) {
