@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Compile C++ to EXE
-        run: g++ -std=c++17 main.cpp SimpleFileDialog.cpp -o colorless_color.exe -lole32 -luuid
+        run: g++ -std=c++17 main.cpp -o colorless_color.exe -lole32 -luuid
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
