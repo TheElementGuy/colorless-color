@@ -55,7 +55,7 @@ colorless_colors_file_select_frame::colorless_colors_file_select_frame() : wxFra
 
 	wxIconBundle all_icons;
 	all_icons.AddIcon(corner_icon);
-	wxTopLevelWindowMSW::SetIcons(all_icons);
+	SetIcons(all_icons);
 }
 
 void colorless_colors_file_select_frame::on_select(wxCommandEvent& event) {
