@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.31)
-project(colorless_color VERSION 2.0.1 LANGUAGES CXX)
+project(colorless_color VERSION 2.0.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SOURCES main.cpp stb_impl.cpp stb_wrapper.cpp stb_wrapper.h img_transforms.cpp img_transforms.h transform_runner.cpp transform_runner.h colorless_color_main_frame.cpp colorless_color_main_frame.h)
+set(SOURCES main.cpp stb_impl.cpp stb_wrapper.cpp stb_wrapper.h img_transforms.cpp img_transforms.h transform_runner.cpp transform_runner.h colorless_color_main_frame.cpp colorless_color_main_frame.h auraful_png.h)
 
 set(APP_FULL_VERSION "${PROJECT_VERSION}.${APP_BUILD_NUMBER}")
 set(APP_OUTPUT_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
@@ -13,6 +13,7 @@ if(WIN32)
     set(APP_OUTPUT_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-windows")
 elseif (APPLE)
     set(APP_OUTPUT_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-apple")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/auraful.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 elseif (UNIX)
     set(APP_OUTPUT_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-linux")
 else()
@@ -62,13 +63,14 @@ set_target_properties(colorless_color PROPERTIES OUTPUT_NAME "${APP_OUTPUT_NAME}
 
 if(WIN32)
     set(wxWidgets_USE_STATIC ON)
-    find_package(wxWidgets CONFIG REQUIRED)
+    find_package(wxWidgets CONFIG REQUIRED COMPONENTS core base)
     target_link_libraries(colorless_color PRIVATE wx::base wx::core)
 
     if(MSVC)
         target_link_options(colorless_color PRIVATE /MANIFEST:NO)
     endif()
 else()
+    set(CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH FALSE)
     find_package(wxWidgets REQUIRED COMPONENTS core base)
     include(${wxWidgets_USE_FILE})
     target_link_libraries(colorless_color PRIVATE ${wxWidgets_LIBRARIES})

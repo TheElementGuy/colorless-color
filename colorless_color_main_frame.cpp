@@ -46,16 +46,15 @@ colorless_colors_file_select_frame::colorless_colors_file_select_frame() : wxFra
 	main_sizer->Add(current_panel, 1, wxEXPAND);
 	SetSizer(main_sizer);
 
-	wxImage raw_icon("auraful.ico", wxBITMAP_TYPE_ICO);
-
-	raw_icon.Rescale(16, 16, wxIMAGE_QUALITY_HIGH);
-
-	wxIcon corner_icon;
-	corner_icon.CopyFromBitmap(wxBitmap(raw_icon));
-
-	wxIconBundle all_icons;
-	all_icons.AddIcon(corner_icon);
-	SetIcons(all_icons);
+#ifdef __WXMSW__
+	SetIcon(wxICON(AAAA));
+#else
+#include "auraful_png.h"
+	wxBitmap icon_bmp = wxBitmap::NewFromPNGData(app_icon_auraful_png, app_icon_auraful_png_len);
+	wxIcon icon;
+	icon.CopyFromBitmap(icon_bmp);
+	SetIcon(icon);
+#endif
 }
 
 void colorless_colors_file_select_frame::on_select(wxCommandEvent& event) {

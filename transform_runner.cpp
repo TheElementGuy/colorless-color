@@ -150,14 +150,33 @@ void run_transform(char* filename, colorless_colors_file_select_frame* frame, co
 			});
 
 			wxString path_string(new_filename);
-			wxLaunchDefaultApplication(path_string);
+			if (open_images_flag) {
+				wxLaunchDefaultApplication(path_string);
+			}
 		}
 
 		wxString folder_path_string(foldername);
 		wxLaunchDefaultApplication(folder_path_string);
+		frame->CallAfter([frame]() {
+			frame->SetStatusText("Awaiting file upload...");
+		});
+
+		wxPanel* main_panel = new wxPanel(frame, wxID_ANY);
+
+		wxStaticText* welcome_text = new wxStaticText(main_panel, wxID_ANY, "Welcome to colorless color app. Click File > Add to get started.");
+
+		wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+		sizer->AddStretchSpacer(1);
+		sizer->Add(welcome_text, 0, wxALIGN_CENTER_HORIZONTAL);
+		sizer->AddStretchSpacer(1);
+
+		main_panel->SetSizer(sizer);
+
+		frame->replace_panel(main_panel);
 	} else {
 		frame->CallAfter([frame]() {
-				frame->SetStatusText("Error loading image. Please try again.");
-			});
+			frame->SetStatusText("Error loading image. Please try again.");
+		});
 	}
 }

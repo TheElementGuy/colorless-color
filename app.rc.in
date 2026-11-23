@@ -1,4 +1,4 @@
-aaaa ICON "@CMAKE_CURRENT_SOURCE_DIR@/auraful.ico"
+AAAA ICON "@CMAKE_CURRENT_SOURCE_DIR@/auraful.ico"
 
 #define wxUSE_RC_MANIFEST 1
 
