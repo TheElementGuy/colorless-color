@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(colorless_color VERSION 2.0.2 LANGUAGES CXX)
+project(colorless_color VERSION 2.0.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -66,7 +66,9 @@ if(WIN32)
     find_package(wxWidgets CONFIG REQUIRED COMPONENTS core base)
     target_link_libraries(colorless_color PRIVATE wx::base wx::core)
 
-    if(MSVC)
+    if(MINGW)
+        target_link_options(colorless_color PRIVATE -static -static-libgcc -static-libstdc++)
+    elseif(MSVC)
         target_link_options(colorless_color PRIVATE /MANIFEST:NO)
     endif()
 else()
