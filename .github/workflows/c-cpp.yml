@@ -7,18 +7,37 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Compile C++ to EXE
-        run: g++ -std=c++17 main.cpp -o colorless_color.exe -lole32 -luuid
+      - name: Setup MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-wxwidgets3.3-msw
 
-      - name: Upload EXE artifact
+      - name: Configure CMake (Release)
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Executable
+        run: cmake --build build --target colorless_color -j
+
+      - name: Upload Windows Executable Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: my_program.exe
+          path: build/cc-*.exe
